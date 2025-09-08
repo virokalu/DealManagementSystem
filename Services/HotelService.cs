@@ -32,10 +32,8 @@ public class HotelService : IHotelService
                 await _context.SaveChangesAsync();
                 return new Response<Hotel>(hotel);
             }
-            else
-            {
-                return new Response<Hotel>("Final Hotel in Deal");
-            }
+
+            return new Response<Hotel>("Final Hotel in Deal");
         }
         catch (Exception ex)
         {

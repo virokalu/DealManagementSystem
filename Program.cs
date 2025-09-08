@@ -6,6 +6,7 @@ using DealManagementSystem.Persistence.Context;
 using DealManagementSystem.Services;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ builder.Services.AddDbContext<DealContext>(options =>
 //Services
 builder.Services.AddScoped<IDealService, DealService>();
 builder.Services.AddScoped<IHotelService, HotelService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 //Validator
 builder.Services.AddScoped<IValidator<Deal>, DealValidator>();
@@ -46,6 +48,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// mapping Uploads folder to Resources folder 
+// app.UseStaticFiles(new StaticFileOptions
+// {
+//     FileProvider = new PhysicalFileProvider(
+//            Path.Combine(builder.Environment.WebRootPath, "Uploads")),
+//     RequestPath = "/Resources"
+// });
+app.UseStaticFiles();
 
 app.UseCors("Allow");
 app.UseHttpsRedirection();

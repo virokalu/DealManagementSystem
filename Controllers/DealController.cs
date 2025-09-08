@@ -11,10 +11,12 @@ namespace DealManagementSystem.Controllers;
 public class DealController : ControllerBase
 {
     private readonly IDealService _dealService;
+    private readonly IFileService _fileService;
     private readonly IMapper _mapper;
-    public DealController(IDealService dealService, IMapper mapper)
+    public DealController(IDealService dealService, IMapper mapper, IFileService fileService)
     {
         _mapper = mapper;
+        _fileService = fileService;
         _dealService = dealService;
     }
 
@@ -39,9 +41,18 @@ public class DealController : ControllerBase
         return Ok(dto);
     }
     [HttpPost]
-    public async Task<ActionResult<DealDto>> PostDeal([FromBody] DealDto dealDto)
+    public async Task<ActionResult<DealDto>> PostDeal([FromForm] DealDto dealDto)
     {
+        string[] allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+        var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, allowedFileExtentions);
+        if (!createdImageName.Success)
+        {
+            return BadRequest(createdImageName.Message);
+        }
+        
         var deal = _mapper.Map<DealDto, Deal>(dealDto);
+        deal.Image = createdImageName.Item;
+
         var response = await _dealService.SaveAsync(deal);
         if (!response.Success)
         {
@@ -53,8 +64,20 @@ public class DealController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<DealDto>> PutDeal(int id, [FromBody] DealDto dealDto)
+    public async Task<ActionResult<DealDto>> PutDeal(int id, [FromForm] DealDto dealDto)
     {
+        if (dealDto.ImageFile != null)
+        {
+            string[] allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+            var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, allowedFileExtentions);
+            if (!createdImageName.Success)
+            {
+                return BadRequest(createdImageName.Message);
+            }
+
+            dealDto.Image = createdImageName.Item;
+        }
+
         var deal = _mapper.Map<DealDto, Deal>(dealDto);
         var response = await _dealService.UpdateAsync(id, deal);
         if (!response.Success)
