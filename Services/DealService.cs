@@ -11,10 +11,13 @@ public class DealService : IDealService
 {
     private readonly DealContext _context;
     private readonly IValidator<Deal> _dealValidator;
-    public DealService(DealContext context, IValidator<Deal> dealValidator)
+    private readonly string[] _allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+    private readonly IFileService _fileService;
+    public DealService(DealContext context, IValidator<Deal> dealValidator, IFileService fileService)
     {
         _context = context;
         _dealValidator = dealValidator;
+        _fileService = fileService;
     }
     public async Task<IEnumerable<Deal>> ListAsync()
     {
@@ -44,16 +47,23 @@ public class DealService : IDealService
         return new Response<Deal>(deal);
     }
 
-    public async Task<Response<Deal>> SaveAsync(Deal deal)
+    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile)
     {
         try
-        {
+        {  
             await _dealValidator.ValidateAndThrowAsync(deal);
             var slugDeal = _context.Deals.FirstOrDefault(d => d.Slug == deal.Slug);
             if (slugDeal != null)
             {
                 return new Response<Deal>("Slug Already Exist");
             }
+            var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
+            if (!createdImageName.Success)
+            {
+                return new Response<Deal>(createdImageName.Message);
+            }
+            deal.Image = createdImageName.Item;
+
             await _context.Deals.AddAsync(deal);
             foreach (var hotel in deal.Hotels)
             {
@@ -73,7 +83,7 @@ public class DealService : IDealService
         }
     }
 
-    public async Task<Response<Deal>> UpdateAsync(int id, Deal deal)
+    public async Task<Response<Deal>> UpdateAsync(int id, Deal deal, IFormFile? imageFile)
     {
         try
         {
@@ -85,6 +95,16 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Deal not found.");
             }
+            if (imageFile != null)
+            {
+                var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
+                if (!createdImageName.Success)
+                {
+                    return new Response<Deal>(createdImageName.Message);
+                }
+                deal.Image = createdImageName.Item;
+            }
+
             _context.Entry(existingDeal).CurrentValues.SetValues(deal);
             foreach (var hotel in deal.Hotels)
             {
