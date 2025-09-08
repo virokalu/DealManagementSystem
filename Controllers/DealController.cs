@@ -48,7 +48,25 @@ public class DealController : ControllerBase
         //     return BadRequest(createdImageName.Message);
         // }
         
-        var deal = _mapper.Map<DealDto, Deal>(dealDto);
+        // var deal = _mapper.Map<DealDto, Deal>(dealDto);
+        var deal = new Deal
+        {
+            Id = 0,
+            Slug = dealDto.Slug,
+            Name = dealDto.Name,
+            Video = dealDto.Video,
+        };
+        if (dealDto.Hotels != null)
+            foreach (HotelDto hotel in dealDto.Hotels)
+            {
+                deal.Hotels.Add(new Hotel
+                {
+                    Id = 0,
+                    Name = hotel.Name,
+                    Rate = hotel.Rate,
+                    Amenities = hotel.Amenities,
+                });
+            }
         // deal.Image = createdImageName.Item;
 
         var response = await _dealService.SaveAsync(deal, dealDto.ImageFile);
@@ -76,7 +94,27 @@ public class DealController : ControllerBase
         //     dealDto.Image = createdImageName.Item;
         // }
 
-        var deal = _mapper.Map<DealDto, Deal>(dealDto);
+        var deal = new Deal
+        {
+            Id = dealDto.Id,
+            Slug = dealDto.Slug,
+            Name = dealDto.Name,
+            Video = dealDto.Video,
+            Image = dealDto.Image
+        };
+        if (dealDto.Hotels != null)
+            foreach (HotelDto hotel in dealDto.Hotels)
+            {
+                deal.Hotels.Add(new Hotel
+                {
+                    Id = hotel.Id,
+                    Name = hotel.Name,
+                    Rate = hotel.Rate,
+                    Amenities = hotel.Amenities
+                });
+            }
+
+        // var deal = _mapper.Map<DealDto, Deal>(dealDto);
         var response = await _dealService.UpdateAsync(id, deal, dealDto.ImageFile);
         if (!response.Success)
         {
