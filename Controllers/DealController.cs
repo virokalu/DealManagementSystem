@@ -43,17 +43,17 @@ public class DealController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<DealDto>> PostDeal([FromForm] DealDto dealDto)
     {
-        string[] allowedFileExtentions = [".jpg", ".jpeg", ".png"];
-        var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, allowedFileExtentions);
-        if (!createdImageName.Success)
-        {
-            return BadRequest(createdImageName.Message);
-        }
+        // string[] allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+        // var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, allowedFileExtentions);
+        // if (!createdImageName.Success)
+        // {
+        //     return BadRequest(createdImageName.Message);
+        // }
         
         var deal = _mapper.Map<DealDto, Deal>(dealDto);
-        deal.Image = createdImageName.Item;
+        // deal.Image = createdImageName.Item;
 
-        var response = await _dealService.SaveAsync(deal);
+        var response = await _dealService.SaveAsync(deal, dealDto.ImageFile);
         if (!response.Success)
         {
             return BadRequest(response.Message);
@@ -66,20 +66,20 @@ public class DealController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<DealDto>> PutDeal(int id, [FromForm] DealDto dealDto)
     {
-        if (dealDto.ImageFile != null)
-        {
-            string[] allowedFileExtentions = [".jpg", ".jpeg", ".png"];
-            var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, allowedFileExtentions);
-            if (!createdImageName.Success)
-            {
-                return BadRequest(createdImageName.Message);
-            }
+        // if (dealDto.ImageFile != null)
+        // {
+        //     string[] allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+        //     var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, allowedFileExtentions);
+        //     if (!createdImageName.Success)
+        //     {
+        //         return BadRequest(createdImageName.Message);
+        //     }
 
-            dealDto.Image = createdImageName.Item;
-        }
+        //     dealDto.Image = createdImageName.Item;
+        // }
 
         var deal = _mapper.Map<DealDto, Deal>(dealDto);
-        var response = await _dealService.UpdateAsync(id, deal);
+        var response = await _dealService.UpdateAsync(id, deal, dealDto.ImageFile);
         if (!response.Success)
         {
             return BadRequest(response.Message);
