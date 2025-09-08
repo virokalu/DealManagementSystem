@@ -11,12 +11,10 @@ namespace DealManagementSystem.Controllers;
 public class DealController : ControllerBase
 {
     private readonly IDealService _dealService;
-    private readonly IFileService _fileService;
     private readonly IMapper _mapper;
-    public DealController(IDealService dealService, IMapper mapper, IFileService fileService)
+    public DealController(IDealService dealService, IMapper mapper)
     {
         _mapper = mapper;
-        _fileService = fileService;
         _dealService = dealService;
     }
 
