@@ -11,6 +11,7 @@ public interface IDealService
   Task<Response<Deal>> FindBySlugAsync(string slug);
   Task<Response<Deal>> UpdateAsync(int id, Deal deal);
   Task<Response<Deal>> DeleteAsync(int id);
-  Task<Response<Deal>> ImageEdit(int id, IFormFile? imageFile);
+  Task<Response<Deal>> ImageUpdate(int id, IFormFile? imageFile);
+  Task<Response<Deal>> VideoUpdate(int id, IFormFile? videoFile);
 }
 
