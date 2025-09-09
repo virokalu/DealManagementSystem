@@ -56,6 +56,15 @@ public class DealController : ControllerBase
             Name = dealDto.Name,
             // Video = dealDto.Video,
         };
+        if (dealDto.Video !=null)
+        {
+            deal.Video = new Video
+            {
+                Id = 0,
+                Path = null,
+                Alt = dealDto.Video.Alt,
+            };
+        }
         if (dealDto.Hotels != null)
             foreach (HotelDto hotel in dealDto.Hotels)
             {
@@ -69,7 +78,7 @@ public class DealController : ControllerBase
             }
         // deal.Image = createdImageName.Item;
 
-        var response = await _dealService.SaveAsync(deal, dealDto.ImageFile);
+        var response = await _dealService.SaveAsync(deal, dealDto.ImageFile, dealDto.VideoFile);
         if (!response.Success)
         {
             return BadRequest(response.Message);

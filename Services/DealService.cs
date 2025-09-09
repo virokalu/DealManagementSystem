@@ -12,6 +12,7 @@ public class DealService : IDealService
     private readonly DealContext _context;
     private readonly IValidator<Deal> _dealValidator;
     private readonly string[] _allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+    private readonly string[] _allowedVideoExtentions = [".mp4", ".avi", ".mov", ".webm"];
     private readonly IFileService _fileService;
     public DealService(DealContext context, IValidator<Deal> dealValidator, IFileService fileService)
     {
@@ -47,7 +48,7 @@ public class DealService : IDealService
         return new Response<Deal>(deal);
     }
 
-    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile)
+    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile, IFormFile? videoFile)
     {
         try
         {
@@ -57,18 +58,33 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Slug Already Exist");
             }
+
+            //Save Image
             var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
             if (!createdImageName.Success)
             {
                 return new Response<Deal>(createdImageName.Message);
             }
-            deal.Image = createdImageName.Item;
 
+            //Save Video
+            var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
+            if (!createdVideoName.Success)
+            {
+                return new Response<Deal>(createdVideoName.Message);
+            }
+
+            //Assign Locations
+            deal.Image = createdVideoName.Item;
+            if (deal.Video != null) deal.Video.Path = createdVideoName.Item;
+
+            //Assign Deal
             await _context.Deals.AddAsync(deal);
             foreach (var hotel in deal.Hotels)
             {
                 hotel.Deal = deal;
             }
+            if (deal.Video != null) deal.Video.Deal = deal;
+
             await _context.SaveChangesAsync();
             return new Response<Deal>(deal);
         }
