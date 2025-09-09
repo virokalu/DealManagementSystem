@@ -74,7 +74,7 @@ public class DealService : IDealService
             }
 
             //Assign Locations
-            deal.Image = createdVideoName.Item;
+            deal.Image = createdImageName.Item;
             if (deal.Video != null) deal.Video.Path = createdVideoName.Item;
 
             //Assign Deal
