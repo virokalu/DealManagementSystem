@@ -80,7 +80,7 @@ public class DealController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<DealDto>> PutDeal(int id, [FromForm] DealDto dealDto)
+    public async Task<ActionResult<DealDto>> PutDeal(int id, [FromBody] DealDto dealDto)
     {
         // if (dealDto.ImageFile != null)
         // {
@@ -100,7 +100,6 @@ public class DealController : ControllerBase
             Slug = dealDto.Slug,
             Name = dealDto.Name,
             Video = dealDto.Video,
-            Image = dealDto.Image
         };
         if (dealDto.Hotels != null)
             foreach (HotelDto hotel in dealDto.Hotels)
@@ -115,7 +114,7 @@ public class DealController : ControllerBase
             }
 
         // var deal = _mapper.Map<DealDto, Deal>(dealDto);
-        var response = await _dealService.UpdateAsync(id, deal, dealDto.ImageFile);
+        var response = await _dealService.UpdateAsync(id, deal);
         if (!response.Success)
         {
             return BadRequest(response.Message);

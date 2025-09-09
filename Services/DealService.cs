@@ -83,7 +83,7 @@ public class DealService : IDealService
         }
     }
 
-    public async Task<Response<Deal>> UpdateAsync(int id, Deal deal, IFormFile? imageFile)
+    public async Task<Response<Deal>> UpdateAsync(int id, Deal deal)
     {
         try
         {
@@ -95,17 +95,21 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Deal not found.");
             }
-            if (imageFile != null)
-            {
-                var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
-                if (!createdImageName.Success)
-                {
-                    return new Response<Deal>(createdImageName.Message);
-                }
-                deal.Image = createdImageName.Item;
-            }
+            // if (imageFile != null)
+            // {
+            //     var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
+            //     if (!createdImageName.Success)
+            //     {
+            //         return new Response<Deal>(createdImageName.Message);
+            //     }
+            //     deal.Image = createdImageName.Item;
+            // }
 
-            _context.Entry(existingDeal).CurrentValues.SetValues(deal);
+            // _context.Entry(existingDeal).CurrentValues.SetValues(deal);
+
+            existingDeal.Name = deal.Name;
+            existingDeal.Video = deal.Video;
+
             foreach (var hotel in deal.Hotels)
             {
                 var hotelEntity = existingDeal.Hotels.FirstOrDefault(c => c.Id == hotel.Id && c.Id != 0);
@@ -155,4 +159,8 @@ public class DealService : IDealService
         }
     }
 
+    public Task<Response<Deal>> ImageEdit(int id, IFormFile? imageFile)
+    {
+        throw new NotImplementedException();
+    }
 }
