@@ -179,10 +179,6 @@ public class DealService : IDealService
             await _context.SaveChangesAsync();
             return new Response<Deal>(existingDeal);
         }
-        else
-        {
-            return new Response<Deal>("Image not foumd.");
-        }
-
+        return new Response<Deal>("Image not foumd.");
     }
 }

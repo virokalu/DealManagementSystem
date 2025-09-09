@@ -134,4 +134,17 @@ public class DealController : ControllerBase
         var dealRes = _mapper.Map<Deal, DealDto>(response.Item!);
         return Ok(dealRes);
     }
+
+    [HttpPut("img/{id}")]
+    public async Task<ActionResult<DealDto>> PutImage(int id, [FromForm] ImageFile imageFile)
+    {        
+        var response = await _dealService.ImageEdit(id, imageFile.imageFile);
+        if (!response.Success)
+        {
+            return BadRequest(response.Message);
+        }
+        var dealRes = _mapper.Map<Deal, DealDto>(response.Item!);
+        return Ok(dealRes);
+    }
+
 }
