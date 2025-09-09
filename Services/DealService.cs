@@ -50,7 +50,7 @@ public class DealService : IDealService
     public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile)
     {
         try
-        {  
+        {
             await _dealValidator.ValidateAndThrowAsync(deal);
             var slugDeal = _context.Deals.FirstOrDefault(d => d.Slug == deal.Slug);
             if (slugDeal != null)
@@ -159,8 +159,30 @@ public class DealService : IDealService
         }
     }
 
-    public Task<Response<Deal>> ImageEdit(int id, IFormFile? imageFile)
+    public async Task<Response<Deal>> ImageEdit(int id, IFormFile? imageFile)
     {
-        throw new NotImplementedException();
+        if (imageFile != null)
+        {
+            var existingDeal = await _context.Deals.FindAsync(id);
+            if (existingDeal == null)
+            {
+                return new Response<Deal>("Deal not found.");
+            }
+            
+            var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
+            if (!createdImageName.Success)
+            {
+                return new Response<Deal>(createdImageName.Message);
+            }
+
+            existingDeal.Image = createdImageName.Item;
+            await _context.SaveChangesAsync();
+            return new Response<Deal>(existingDeal);
+        }
+        else
+        {
+            return new Response<Deal>("Image not foumd.");
+        }
+
     }
 }
