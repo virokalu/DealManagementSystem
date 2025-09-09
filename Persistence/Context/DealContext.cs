@@ -7,6 +7,7 @@ public class DealContext: DbContext
     public DealContext(DbContextOptions<DealContext> options) : base(options) { }
     public DbSet<Deal> Deals { get; set; } = null!;
     public DbSet<Hotel> Hotels { get; set; } = null!;
+    public DbSet<Video> Videos { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,6 +18,10 @@ public class DealContext: DbContext
         .HasMany(d => d.Hotels)
         .WithOne(d => d.Deal)
         .HasForeignKey(d => d.DealId)
+        .OnDelete(DeleteBehavior.Cascade);
+      modelBuilder.Entity<Deal>()
+        .HasOne(d => d.Video)
+        .WithOne(v => v.Deal)
         .OnDelete(DeleteBehavior.Cascade);
     }
 }

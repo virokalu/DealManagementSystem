@@ -54,7 +54,7 @@ public class DealController : ControllerBase
             Id = 0,
             Slug = dealDto.Slug,
             Name = dealDto.Name,
-            Video = dealDto.Video,
+            // Video = dealDto.Video,
         };
         if (dealDto.Hotels != null)
             foreach (HotelDto hotel in dealDto.Hotels)
@@ -99,7 +99,7 @@ public class DealController : ControllerBase
             Id = dealDto.Id,
             Slug = dealDto.Slug,
             Name = dealDto.Name,
-            Video = dealDto.Video,
+            // Video = dealDto.Video,
         };
         if (dealDto.Hotels != null)
             foreach (HotelDto hotel in dealDto.Hotels)
