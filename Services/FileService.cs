@@ -76,7 +76,7 @@ public class FileService(IWebHostEnvironment environment) : IFileService
         var fileNameWithPath = Path.Combine(path, fileName);
         await using var stream = new FileStream(fileNameWithPath, FileMode.Create);
         await file.CopyToAsync(stream);
-
+        mediaList.Add(fileName);
         
       }
       return new Response<List<String>>(item: mediaList);

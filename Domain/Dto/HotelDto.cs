@@ -5,6 +5,6 @@ public class HotelDto
     public string Name { get; set; }
     public decimal Rate { get; set; }
     public string Amenities { get; set; }
-    public List<string> Media { get; set; }
+    public List<string>? Media { get; set; }
     public List<IFormFile>? MediaFiles { get; set; }
 }
