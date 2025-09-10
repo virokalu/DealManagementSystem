@@ -49,36 +49,36 @@ public class DealController : ControllerBase
         // }
         
         // var deal = _mapper.Map<DealDto, Deal>(dealDto);
-        var deal = new Deal
-        {
-            Id = 0,
-            Slug = dealDto.Slug,
-            Name = dealDto.Name,
-            // Video = dealDto.Video,
-        };
-        if (dealDto.Video !=null)
-        {
-            deal.Video = new Video
-            {
-                Id = 0,
-                Path = null,
-                Alt = dealDto.Video.Alt,
-            };
-        }
-        if (dealDto.Hotels != null)
-            foreach (HotelDto hotel in dealDto.Hotels)
-            {
-                deal.Hotels.Add(new Hotel
-                {
-                    Id = 0,
-                    Name = hotel.Name,
-                    Rate = hotel.Rate,
-                    Amenities = hotel.Amenities,
-                });
-            }
+        // var deal = new Deal
+        // {
+        //     Id = 0,
+        //     Slug = dealDto.Slug,
+        //     Name = dealDto.Name,
+        //     // Video = dealDto.Video,
+        // };
+        // if (dealDto.Video !=null)
+        // {
+        //     deal.Video = new Video
+        //     {
+        //         Id = 0,
+        //         Path = null,
+        //         Alt = dealDto.Video.Alt,
+        //     };
+        // }
+        // if (dealDto.Hotels != null)
+        //     foreach (HotelDto hotel in dealDto.Hotels)
+        //     {
+        //         deal.Hotels.Add(new Hotel
+        //         {
+        //             Id = 0,
+        //             Name = hotel.Name,
+        //             Rate = hotel.Rate,
+        //             Amenities = hotel.Amenities,
+        //         });
+        //     }
         // deal.Image = createdImageName.Item;
 
-        var response = await _dealService.SaveAsync(deal, dealDto.ImageFile, dealDto.VideoFile);
+        var response = await _dealService.SaveAsync(dealDto);
         if (!response.Success)
         {
             return BadRequest(response.Message);

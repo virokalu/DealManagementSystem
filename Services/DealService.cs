@@ -1,3 +1,4 @@
+using DealManagementSystem.Domain.DTO;
 using DealManagementSystem.Domain.Models;
 using DealManagementSystem.Domain.Services;
 using DealManagementSystem.Domain.Services.Communication;
@@ -39,7 +40,7 @@ public class DealService : IDealService
     {
         var deal = await _context.Deals
             .Include(d => d.Hotels)
-            .Include(d=>d.Video)
+            .Include(d => d.Video)
             .FirstOrDefaultAsync(d => d.Slug == slug);
         if (deal == null)
         {
@@ -49,10 +50,37 @@ public class DealService : IDealService
         return new Response<Deal>(deal);
     }
 
-    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile, IFormFile? videoFile)
+    public async Task<Response<Deal>> SaveAsync(DealDto dealDto)
     {
         try
         {
+            var deal = new Deal
+            {
+                Id = 0,
+                Slug = dealDto.Slug,
+                Name = dealDto.Name,
+                // Video = dealDto.Video,
+            };
+            if (dealDto.Video != null)
+            {
+                deal.Video = new Video
+                {
+                    Id = 0,
+                    Path = null,
+                    Alt = dealDto.Video.Alt,
+                };
+            }
+            if (dealDto.Hotels != null)
+                foreach (HotelDto hotel in dealDto.Hotels)
+                {
+                    deal.Hotels.Add(new Hotel
+                    {
+                        Id = 0,
+                        Name = hotel.Name,
+                        Rate = hotel.Rate,
+                        Amenities = hotel.Amenities,
+                    });
+                }
             await _dealValidator.ValidateAndThrowAsync(deal);
             var slugDeal = _context.Deals.FirstOrDefault(d => d.Slug == deal.Slug);
             if (slugDeal != null)
@@ -61,14 +89,14 @@ public class DealService : IDealService
             }
 
             //Save Image
-            var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
+            var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, _allowedFileExtentions);
             if (!createdImageName.Success)
             {
                 return new Response<Deal>(createdImageName.Message);
             }
 
             //Save Video
-            var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
+            var createdVideoName = await _fileService.SaveFileAsync(dealDto.VideoFile, _allowedVideoExtentions);
             if (!createdVideoName.Success)
             {
                 return new Response<Deal>(createdVideoName.Message);
@@ -107,7 +135,7 @@ public class DealService : IDealService
             await _dealValidator.ValidateAndThrowAsync(deal);
             var existingDeal = await _context.Deals
                 .Include(d => d.Hotels)
-                .Include(d=>d.Video)
+                .Include(d => d.Video)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (existingDeal == null)
             {
@@ -126,7 +154,8 @@ public class DealService : IDealService
             // _context.Entry(existingDeal).CurrentValues.SetValues(deal);
 
             existingDeal.Name = deal.Name;
-            if (existingDeal.Video != null) {
+            if (existingDeal.Video != null)
+            {
                 existingDeal.Video.Alt = deal.Video.Alt;
             }
             else
@@ -199,7 +228,7 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Deal not found.");
             }
-            
+
             var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
             if (!createdImageName.Success)
             {
@@ -218,20 +247,21 @@ public class DealService : IDealService
         if (videoFile != null)
         {
             var existingDeal = await _context.Deals
-                .Include(d=>d.Video)
+                .Include(d => d.Video)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (existingDeal == null)
             {
                 return new Response<Deal>("Deal not found.");
             }
-            
+
             var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
             if (!createdVideoName.Success)
             {
                 return new Response<Deal>(createdVideoName.Message);
             }
 
-            if (existingDeal.Video != null) {
+            if (existingDeal.Video != null)
+            {
                 existingDeal.Video.Path = createdVideoName.Item;
             }
             else
