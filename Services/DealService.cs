@@ -12,6 +12,7 @@ public class DealService : IDealService
     private readonly DealContext _context;
     private readonly IValidator<Deal> _dealValidator;
     private readonly string[] _allowedFileExtentions = [".jpg", ".jpeg", ".png"];
+    private readonly string[] _allowedVideoExtentions = [".mp4", ".avi", ".mov", ".webm"];
     private readonly IFileService _fileService;
     public DealService(DealContext context, IValidator<Deal> dealValidator, IFileService fileService)
     {
@@ -38,6 +39,7 @@ public class DealService : IDealService
     {
         var deal = await _context.Deals
             .Include(d => d.Hotels)
+            .Include(d=>d.Video)
             .FirstOrDefaultAsync(d => d.Slug == slug);
         if (deal == null)
         {
@@ -47,7 +49,7 @@ public class DealService : IDealService
         return new Response<Deal>(deal);
     }
 
-    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile)
+    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile, IFormFile? videoFile)
     {
         try
         {
@@ -57,18 +59,33 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Slug Already Exist");
             }
+
+            //Save Image
             var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
             if (!createdImageName.Success)
             {
                 return new Response<Deal>(createdImageName.Message);
             }
-            deal.Image = createdImageName.Item;
 
+            //Save Video
+            var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
+            if (!createdVideoName.Success)
+            {
+                return new Response<Deal>(createdVideoName.Message);
+            }
+
+            //Assign Locations
+            deal.Image = createdImageName.Item;
+            if (deal.Video != null) deal.Video.Path = createdVideoName.Item;
+
+            //Assign Deal
             await _context.Deals.AddAsync(deal);
             foreach (var hotel in deal.Hotels)
             {
                 hotel.Deal = deal;
             }
+            if (deal.Video != null) deal.Video.Deal = deal;
+
             await _context.SaveChangesAsync();
             return new Response<Deal>(deal);
         }
@@ -90,6 +107,7 @@ public class DealService : IDealService
             await _dealValidator.ValidateAndThrowAsync(deal);
             var existingDeal = await _context.Deals
                 .Include(d => d.Hotels)
+                .Include(d=>d.Video)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (existingDeal == null)
             {
@@ -108,7 +126,20 @@ public class DealService : IDealService
             // _context.Entry(existingDeal).CurrentValues.SetValues(deal);
 
             existingDeal.Name = deal.Name;
-            existingDeal.Video = deal.Video;
+            if (existingDeal.Video != null) {
+                existingDeal.Video.Alt = deal.Video.Alt;
+            }
+            else
+            {
+                existingDeal.Video = new Video
+                {
+                    Id = 0,
+                    Path = null,
+                    Alt = deal.Video.Alt,
+                    DealId = existingDeal.Id,
+                    Deal = existingDeal
+                };
+            }
 
             foreach (var hotel in deal.Hotels)
             {
@@ -159,7 +190,7 @@ public class DealService : IDealService
         }
     }
 
-    public async Task<Response<Deal>> ImageEdit(int id, IFormFile? imageFile)
+    public async Task<Response<Deal>> ImageUpdate(int id, IFormFile? imageFile)
     {
         if (imageFile != null)
         {
@@ -180,5 +211,44 @@ public class DealService : IDealService
             return new Response<Deal>(existingDeal);
         }
         return new Response<Deal>("Image not foumd.");
+    }
+
+    public async Task<Response<Deal>> VideoUpdate(int id, IFormFile? videoFile)
+    {
+        if (videoFile != null)
+        {
+            var existingDeal = await _context.Deals
+                .Include(d=>d.Video)
+                .FirstOrDefaultAsync(d => d.Id == id);
+            if (existingDeal == null)
+            {
+                return new Response<Deal>("Deal not found.");
+            }
+            
+            var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
+            if (!createdVideoName.Success)
+            {
+                return new Response<Deal>(createdVideoName.Message);
+            }
+
+            if (existingDeal.Video != null) {
+                existingDeal.Video.Path = createdVideoName.Item;
+            }
+            else
+            {
+                existingDeal.Video = new Video
+                {
+                    Id = 0,
+                    Path = createdVideoName.Item,
+                    Alt = "This is a Alt",
+                    DealId = existingDeal.Id,
+                    Deal = existingDeal
+                };
+            }
+
+            await _context.SaveChangesAsync();
+            return new Response<Deal>(existingDeal);
+        }
+        return new Response<Deal>("Video not foumd.");
     }
 }

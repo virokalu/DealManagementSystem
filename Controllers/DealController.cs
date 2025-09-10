@@ -54,8 +54,17 @@ public class DealController : ControllerBase
             Id = 0,
             Slug = dealDto.Slug,
             Name = dealDto.Name,
-            Video = dealDto.Video,
+            // Video = dealDto.Video,
         };
+        if (dealDto.Video !=null)
+        {
+            deal.Video = new Video
+            {
+                Id = 0,
+                Path = null,
+                Alt = dealDto.Video.Alt,
+            };
+        }
         if (dealDto.Hotels != null)
             foreach (HotelDto hotel in dealDto.Hotels)
             {
@@ -69,7 +78,7 @@ public class DealController : ControllerBase
             }
         // deal.Image = createdImageName.Item;
 
-        var response = await _dealService.SaveAsync(deal, dealDto.ImageFile);
+        var response = await _dealService.SaveAsync(deal, dealDto.ImageFile, dealDto.VideoFile);
         if (!response.Success)
         {
             return BadRequest(response.Message);
@@ -99,8 +108,17 @@ public class DealController : ControllerBase
             Id = dealDto.Id,
             Slug = dealDto.Slug,
             Name = dealDto.Name,
-            Video = dealDto.Video,
+            // Video = dealDto.Video,
         };
+        if (dealDto.Video !=null)
+        {
+            deal.Video = new Video
+            {
+                Id = dealDto.Video.Id,
+                Path = null,
+                Alt = dealDto.Video.Alt,
+            };
+        }
         if (dealDto.Hotels != null)
             foreach (HotelDto hotel in dealDto.Hotels)
             {
@@ -138,7 +156,18 @@ public class DealController : ControllerBase
     [HttpPut("img/{id}")]
     public async Task<ActionResult<DealDto>> PutImage(int id, [FromForm] ImageFile imageFile)
     {        
-        var response = await _dealService.ImageEdit(id, imageFile.imageFile);
+        var response = await _dealService.ImageUpdate(id, imageFile.imageFile);
+        if (!response.Success)
+        {
+            return BadRequest(response.Message);
+        }
+        var dealRes = _mapper.Map<Deal, DealDto>(response.Item!);
+        return Ok(dealRes);
+    }
+    [HttpPut("video/{id}")]
+    public async Task<ActionResult<DealDto>> PutVideo(int id, [FromForm] ImageFile videoFile)
+    {        
+        var response = await _dealService.VideoUpdate(id, videoFile.imageFile);
         if (!response.Success)
         {
             return BadRequest(response.Message);
