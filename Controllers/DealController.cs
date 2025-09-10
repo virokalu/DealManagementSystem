@@ -89,7 +89,7 @@ public class DealController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<DealDto>> PutDeal(int id, [FromBody] DealDto dealDto)
+    public async Task<ActionResult<DealDto>> PutDeal(int id, [FromForm] DealDto dealDto)
     {
         // if (dealDto.ImageFile != null)
         // {
@@ -103,36 +103,36 @@ public class DealController : ControllerBase
         //     dealDto.Image = createdImageName.Item;
         // }
 
-        var deal = new Deal
-        {
-            Id = dealDto.Id,
-            Slug = dealDto.Slug,
-            Name = dealDto.Name,
-            // Video = dealDto.Video,
-        };
-        if (dealDto.Video !=null)
-        {
-            deal.Video = new Video
-            {
-                Id = dealDto.Video.Id,
-                Path = null,
-                Alt = dealDto.Video.Alt,
-            };
-        }
-        if (dealDto.Hotels != null)
-            foreach (HotelDto hotel in dealDto.Hotels)
-            {
-                deal.Hotels.Add(new Hotel
-                {
-                    Id = hotel.Id,
-                    Name = hotel.Name,
-                    Rate = hotel.Rate,
-                    Amenities = hotel.Amenities
-                });
-            }
+        // var deal = new Deal
+        // {
+        //     Id = dealDto.Id,
+        //     Slug = dealDto.Slug,
+        //     Name = dealDto.Name,
+        //     // Video = dealDto.Video,
+        // };
+        // if (dealDto.Video !=null)
+        // {
+        //     deal.Video = new Video
+        //     {
+        //         Id = dealDto.Video.Id,
+        //         Path = null,
+        //         Alt = dealDto.Video.Alt,
+        //     };
+        // }
+        // if (dealDto.Hotels != null)
+        //     foreach (HotelDto hotel in dealDto.Hotels)
+        //     {
+        //         deal.Hotels.Add(new Hotel
+        //         {
+        //             Id = hotel.Id,
+        //             Name = hotel.Name,
+        //             Rate = hotel.Rate,
+        //             Amenities = hotel.Amenities
+        //         });
+        //     }
 
         // var deal = _mapper.Map<DealDto, Deal>(dealDto);
-        var response = await _dealService.UpdateAsync(id, deal);
+        var response = await _dealService.UpdateAsync(id, dealDto);
         if (!response.Success)
         {
             return BadRequest(response.Message);

@@ -14,7 +14,7 @@ public class DealService : IDealService
     private readonly IValidator<Deal> _dealValidator;
     private readonly string[] _allowedFileExtentions = [".jpg", ".jpeg", ".png"];
     private readonly string[] _allowedVideoExtentions = [".mp4", ".avi", ".mov", ".webm"];
-    private readonly string[] _allowedMediaExtentions = [".mp4", ".avi", ".mov", ".webm",".jpg", ".jpeg", ".png"];
+    private readonly string[] _allowedMediaExtentions = [".mp4", ".avi", ".mov", ".webm", ".jpg", ".jpeg", ".png"];
     private readonly IFileService _fileService;
     public DealService(DealContext context, IValidator<Deal> dealValidator, IFileService fileService)
     {
@@ -135,11 +135,10 @@ public class DealService : IDealService
         }
     }
 
-    public async Task<Response<Deal>> UpdateAsync(int id, Deal deal)
+    public async Task<Response<Deal>> UpdateAsync(int id, DealDto dealDto)
     {
         try
         {
-            await _dealValidator.ValidateAndThrowAsync(deal);
             var existingDeal = await _context.Deals
                 .Include(d => d.Hotels)
                 .Include(d => d.Video)
@@ -148,6 +147,50 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Deal not found.");
             }
+
+            var deal = new Deal
+            {
+                Id = dealDto.Id,
+                Slug = dealDto.Slug,
+                Name = dealDto.Name,
+                // Video = dealDto.Video,
+            };
+            if (dealDto.Video != null)
+            {
+                deal.Video = new Video
+                {
+                    Id = dealDto.Video.Id,
+                    Path = null,
+                    Alt = dealDto.Video.Alt,
+                };
+            }
+            if (dealDto.Hotels != null && dealDto.Hotels.Any())
+                foreach (HotelDto hotel in dealDto.Hotels)
+                {
+                    var mediaList = new List<string>();
+
+                    if (hotel.MediaFiles != null && hotel.MediaFiles.Any())
+                    {
+                        var mediaResponse = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
+                        if (!mediaResponse.Success)
+                        {
+                            return new Response<Deal>(mediaResponse.Message);
+                        }
+                        if (mediaResponse.Item != null) mediaList.AddRange(mediaResponse.Item);
+                    }
+
+                    deal.Hotels.Add(new Hotel
+                    {
+                        Id = hotel.Id,
+                        Name = hotel.Name,
+                        Rate = hotel.Rate,
+                        Amenities = hotel.Amenities,
+                        Media = (hotel.Media != null) ? [.. hotel.Media.ToList(),.. mediaList] : mediaList
+                    });
+                }
+
+            await _dealValidator.ValidateAndThrowAsync(deal);
+
             // if (imageFile != null)
             // {
             //     var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
@@ -163,7 +206,7 @@ public class DealService : IDealService
             existingDeal.Name = deal.Name;
             if (existingDeal.Video != null)
             {
-                existingDeal.Video.Alt = deal.Video.Alt;
+                existingDeal.Video.Alt = deal.Video?.Alt;
             }
             else
             {
@@ -171,7 +214,7 @@ public class DealService : IDealService
                 {
                     Id = 0,
                     Path = null,
-                    Alt = deal.Video.Alt,
+                    Alt = deal.Video?.Alt,
                     DealId = existingDeal.Id,
                     Deal = existingDeal
                 };
@@ -185,6 +228,7 @@ public class DealService : IDealService
                     hotelEntity.Name = hotel.Name;
                     hotelEntity.Rate = hotel.Rate;
                     hotelEntity.Amenities = hotel.Amenities;
+                    hotelEntity.Media = hotel.Media;
                 }
                 else
                 {

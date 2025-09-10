@@ -26,13 +26,19 @@ public class HotelService : IHotelService
                 .Include(d => d.Hotels)
                 .FirstOrDefaultAsync(d => d.Id == hotel.DealId);
 
-            if (deal.Hotels.Count > 1)
+            if (deal != null)
             {
-                _context.Hotels.Remove(hotel);
-                await _context.SaveChangesAsync();
-                return new Response<Hotel>(hotel);
+                if (deal.Hotels.Count > 1)
+                {
+                    _context.Hotels.Remove(hotel);
+                    await _context.SaveChangesAsync();
+                    return new Response<Hotel>(hotel);
+                }
             }
-
+            else
+            {
+                return new Response<Hotel>("Deal not Found");
+            }
             return new Response<Hotel>("Final Hotel in Deal");
         }
         catch (Exception ex)
