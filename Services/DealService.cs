@@ -71,14 +71,30 @@ public class DealService : IDealService
                 // };
                 deal.Video = dealDto.Video;
             }
-            
+
             if (dealDto.Hotels != null)
                 foreach (HotelDto hotel in dealDto.Hotels)
                 {
-                    var mediaList = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
-                    if (!mediaList.Success)
+                    // var mediaList = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
+                    // if (!mediaList.Success)
+                    // {
+                    //     return new Response<Deal>(mediaList.Message);
+                    // }
+                    var mediaList = new List<Media>();
+                    if (hotel.Media != null)
                     {
-                        return new Response<Deal>(mediaList.Message);
+                        foreach (MediaDto media in hotel.Media)
+                        {
+                            var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
+                            if (mediaRes.Success)
+                            {
+                                mediaList.Add(new Media
+                                {
+                                    Path = mediaRes.Item,
+                                    Alt = media.Alt
+                                });
+                            }
+                        }
                     }
                     deal.Hotels.Add(new Hotel
                     {
@@ -86,7 +102,8 @@ public class DealService : IDealService
                         Name = hotel.Name,
                         Rate = hotel.Rate,
                         Amenities = hotel.Amenities,
-                        Media = mediaList.Item
+                        // Media = mediaList.Item
+                        Medias = mediaList
                     });
                 }
             await _dealValidator.ValidateAndThrowAsync(deal);
@@ -142,7 +159,7 @@ public class DealService : IDealService
         {
             var existingDeal = await _context.Deals
                 .Include(d => d.Hotels)
-                .Include(d => d.Video)
+                // .Include(d => d.Video)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (existingDeal == null)
             {
@@ -158,7 +175,7 @@ public class DealService : IDealService
             };
             if (dealDto.Video != null)
             {
-                deal.Video = new MediaDto
+                deal.Video = new Media
                 {
                     Path = null,
                     Alt = dealDto.Video.Alt,
@@ -167,16 +184,39 @@ public class DealService : IDealService
             if (dealDto.Hotels != null && dealDto.Hotels.Any())
                 foreach (HotelDto hotel in dealDto.Hotels)
                 {
-                    var mediaList = new List<string>();
+                    var mediaList = new List<Media>();
 
-                    if (hotel.MediaFiles != null && hotel.MediaFiles.Any())
+                    if (hotel.Media != null && hotel.Media.Any())
                     {
-                        var mediaResponse = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
-                        if (!mediaResponse.Success)
+                        // var mediaResponse = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
+                        // if (!mediaResponse.Success)
+                        // {
+                        //     return new Response<Deal>(mediaResponse.Message);
+                        // }
+                        // if (mediaResponse.Item != null) mediaList.AddRange(mediaResponse.Item);
+                        foreach (MediaDto media in hotel.Media)
                         {
-                            return new Response<Deal>(mediaResponse.Message);
+                            if (media.MediaFile == null)
+                            {
+                                mediaList.Add(new Media
+                                {
+                                    Alt = media.Alt,
+                                    Path = media.Path
+                                });
+                            }
+                            else
+                            {
+                                var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
+                                if (mediaRes.Success)
+                                {
+                                    mediaList.Add(new Media
+                                    {
+                                        Path = mediaRes.Item,
+                                        Alt = media.Alt
+                                    });
+                                }
+                            }
                         }
-                        if (mediaResponse.Item != null) mediaList.AddRange(mediaResponse.Item);
                     }
 
                     deal.Hotels.Add(new Hotel
@@ -185,7 +225,8 @@ public class DealService : IDealService
                         Name = hotel.Name,
                         Rate = hotel.Rate,
                         Amenities = hotel.Amenities,
-                        Media = (hotel.Media != null) ? [.. hotel.Media.ToList(),.. mediaList] : mediaList
+                        // Media = (hotel.Media != null) ? [.. hotel.Media.ToList(), .. mediaList] : mediaList
+                        Medias = mediaList
                     });
                 }
 
@@ -210,7 +251,7 @@ public class DealService : IDealService
             }
             else
             {
-                existingDeal.Video = new MediaDto
+                existingDeal.Video = new Media
                 {
                     Path = null,
                     Alt = deal.Video?.Alt
@@ -225,7 +266,7 @@ public class DealService : IDealService
                     hotelEntity.Name = hotel.Name;
                     hotelEntity.Rate = hotel.Rate;
                     hotelEntity.Amenities = hotel.Amenities;
-                    hotelEntity.Media = hotel.Media;
+                    hotelEntity.Medias = hotel.Medias;
                 }
                 else
                 {
@@ -314,7 +355,7 @@ public class DealService : IDealService
             }
             else
             {
-                existingDeal.Video = new MediaDto
+                existingDeal.Video = new Media
                 {
                     Path = createdVideoName.Item,
                     Alt = "This is a Alt"

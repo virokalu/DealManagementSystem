@@ -1,8 +1,10 @@
+using DealManagementSystem.Domain.Models;
+
 namespace DealManagementSystem.Domain.DTO;
 public class DealDto : DealListDto
 {
     public IFormFile? ImageFile { get; set; }
     public IFormFile? VideoFile { get; set; }
-    public MediaDto? Video { get; set; }
+    public Media? Video { get; set; }
     public ICollection<HotelDto>?Hotels { get; set; } = new List<HotelDto>();
 }
