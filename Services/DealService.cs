@@ -41,7 +41,7 @@ public class DealService : IDealService
     {
         var deal = await _context.Deals
             .Include(d => d.Hotels)
-            .Include(d => d.Video)
+            // .Include(d => d.Video)
             .FirstOrDefaultAsync(d => d.Slug == slug);
         if (deal == null)
         {
@@ -64,20 +64,21 @@ public class DealService : IDealService
             };
             if (dealDto.Video != null)
             {
-                deal.Video = new Video
-                {
-                    Id = 0,
-                    Path = null,
-                    Alt = dealDto.Video.Alt,
-                };
+                // deal.Video = new Vide
+                // {
+                //     Path = null,
+                //     Alt = dealDto.Video.Alt,
+                // };
+                deal.Video = dealDto.Video;
             }
+            
             if (dealDto.Hotels != null)
                 foreach (HotelDto hotel in dealDto.Hotels)
                 {
                     var mediaList = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
                     if (!mediaList.Success)
                     {
-                        return new Response<Deal>(mediaList.Message);                    
+                        return new Response<Deal>(mediaList.Message);
                     }
                     deal.Hotels.Add(new Hotel
                     {
@@ -119,7 +120,7 @@ public class DealService : IDealService
             {
                 hotel.Deal = deal;
             }
-            if (deal.Video != null) deal.Video.Deal = deal;
+            // if (deal.Video != null) deal.Video.Deal = deal;
 
             await _context.SaveChangesAsync();
             return new Response<Deal>(deal);
@@ -157,9 +158,8 @@ public class DealService : IDealService
             };
             if (dealDto.Video != null)
             {
-                deal.Video = new Video
+                deal.Video = new VideoDto
                 {
-                    Id = dealDto.Video.Id,
                     Path = null,
                     Alt = dealDto.Video.Alt,
                 };
@@ -210,13 +210,10 @@ public class DealService : IDealService
             }
             else
             {
-                existingDeal.Video = new Video
+                existingDeal.Video = new VideoDto
                 {
-                    Id = 0,
                     Path = null,
-                    Alt = deal.Video?.Alt,
-                    DealId = existingDeal.Id,
-                    Deal = existingDeal
+                    Alt = deal.Video?.Alt
                 };
             }
 
@@ -317,13 +314,10 @@ public class DealService : IDealService
             }
             else
             {
-                existingDeal.Video = new Video
+                existingDeal.Video = new VideoDto
                 {
-                    Id = 0,
                     Path = createdVideoName.Item,
-                    Alt = "This is a Alt",
-                    DealId = existingDeal.Id,
-                    Deal = existingDeal
+                    Alt = "This is a Alt"
                 };
             }
 

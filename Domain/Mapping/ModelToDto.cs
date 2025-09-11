@@ -13,7 +13,6 @@ public class ModelToDto : Profile
           .ForMember(d => d.Hotels, opt => opt.MapFrom(d => d.Hotels))
           .ForMember(d => d.Video, opt => opt.MapFrom(d => d.Video));
         CreateMap<Hotel, HotelDto>();
-        CreateMap<Video, VideoDto>();
     }
 }
 
