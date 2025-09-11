@@ -158,7 +158,7 @@ public class DealService : IDealService
             };
             if (dealDto.Video != null)
             {
-                deal.Video = new VideoDto
+                deal.Video = new MediaDto
                 {
                     Path = null,
                     Alt = dealDto.Video.Alt,
@@ -210,7 +210,7 @@ public class DealService : IDealService
             }
             else
             {
-                existingDeal.Video = new VideoDto
+                existingDeal.Video = new MediaDto
                 {
                     Path = null,
                     Alt = deal.Video?.Alt
@@ -314,7 +314,7 @@ public class DealService : IDealService
             }
             else
             {
-                existingDeal.Video = new VideoDto
+                existingDeal.Video = new MediaDto
                 {
                     Path = createdVideoName.Item,
                     Alt = "This is a Alt"
