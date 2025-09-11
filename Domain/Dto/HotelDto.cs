@@ -7,5 +7,5 @@ public class HotelDto
     public string Name { get; set; }
     public decimal Rate { get; set; }
     public string Amenities { get; set; }
-    public List<MediaDto>? Media { get; set; } = new List<MediaDto>();
+    public List<MediaDto>? Medias { get; set; } = new List<MediaDto>();
 }

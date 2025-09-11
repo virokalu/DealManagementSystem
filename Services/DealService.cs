@@ -81,9 +81,9 @@ public class DealService : IDealService
                     //     return new Response<Deal>(mediaList.Message);
                     // }
                     var mediaList = new List<Media>();
-                    if (hotel.Media != null)
+                    if (hotel.Medias != null)
                     {
-                        foreach (MediaDto media in hotel.Media)
+                        foreach (MediaDto media in hotel.Medias)
                         {
                             var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
                             if (mediaRes.Success)
@@ -186,7 +186,7 @@ public class DealService : IDealService
                 {
                     var mediaList = new List<Media>();
 
-                    if (hotel.Media != null && hotel.Media.Any())
+                    if (hotel.Medias != null && hotel.Medias.Any())
                     {
                         // var mediaResponse = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
                         // if (!mediaResponse.Success)
@@ -194,7 +194,7 @@ public class DealService : IDealService
                         //     return new Response<Deal>(mediaResponse.Message);
                         // }
                         // if (mediaResponse.Item != null) mediaList.AddRange(mediaResponse.Item);
-                        foreach (MediaDto media in hotel.Media)
+                        foreach (MediaDto media in hotel.Medias)
                         {
                             if (media.MediaFile == null)
                             {
