@@ -94,11 +94,11 @@ public class DealService : IDealService
                                     Alt = media.Alt
                                 });
                             }
+                            Console.WriteLine($"No MediaFile found in Media with Alt: {media.Alt}");
                         }
                     }
                     deal.Hotels.Add(new Hotel
                     {
-                        Id = 0,
                         Name = hotel.Name,
                         Rate = hotel.Rate,
                         Amenities = hotel.Amenities,

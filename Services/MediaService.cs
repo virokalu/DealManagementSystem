@@ -27,7 +27,6 @@ public class MediaService : IMediaService
                 if (mediaToRemove != null)
                 {
                     hotel.Medias.Remove(mediaToRemove);
-                    _context.Entry(hotel).Property(h => h.Medias).IsModified = true;
                     await _context.SaveChangesAsync();
                     return new Response<Media>(mediaToRemove);
                 }
@@ -57,8 +56,8 @@ public class MediaService : IMediaService
                         if (mediaRes.Success)
                         {
                             mediaToUpdate.Path = mediaRes.Item;
-                            _context.Entry(hotel).Property(h => h.Medias).IsModified = true;
                             await _context.SaveChangesAsync();
+                            return new Response<Media>(mediaToUpdate);
                         }
                     }
                     return new Response<Media>("Media not found");
