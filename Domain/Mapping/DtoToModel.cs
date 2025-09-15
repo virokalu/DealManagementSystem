@@ -6,12 +6,13 @@ namespace DealManagementSystem.Domain.Mapping;
 
 public class DtoToModel : Profile
 {
-    public DtoToModel()
-    {
-        CreateMap<DealDto, Deal>()
-          .ForMember(d => d.Hotels, opt => opt.MapFrom(d => d.Hotels));
-        CreateMap<HotelDto, Hotel>();
-        CreateMap<MediaDto, Media>();
-    }
-}
+  public DtoToModel()
+  {
+    CreateMap<DealDto, Deal>()
+      .ForMember(d => d.Hotels, opt => opt.MapFrom(d => d.Hotels));
+    CreateMap<HotelDto, Hotel>();
+    CreateMap<MediaDto, Media>()
+      .ForMember(m => m.Id, opt => opt.MapFrom(m => Guid.Parse(m.Id!)));
+  }
+};
 

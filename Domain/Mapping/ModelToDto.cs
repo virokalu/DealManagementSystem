@@ -14,7 +14,8 @@ public class ModelToDto : Profile
       .ForMember(d => d.Video, opt => opt.MapFrom(d => d.Video));
     CreateMap<Hotel, HotelDto>()
       .ForMember(d=> d.Medias, opt => opt.MapFrom(d=>d.Medias));
-    CreateMap<Media, MediaDto>();
+    CreateMap<Media, MediaDto>()
+      .ForMember(m=>m.Id,opt=>opt.MapFrom(m=>m.Id.ToString()));
     }
 }
 

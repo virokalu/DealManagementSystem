@@ -5,5 +5,5 @@ namespace DealManagementSystem.Domain.Services;
 public interface IMediaService
 {
     Task<Response<Media>> UpdateAsync(int id, MediaDto mediaDto);
-    Task<Response<Media>> DeleteAsync(int id, string itemId);
+    Task<Response<Media>> DeleteAsync(int id, string? itemId);
 }

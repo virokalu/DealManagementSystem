@@ -6,7 +6,6 @@ using DealManagementSystem.Persistence.Context;
 using DealManagementSystem.Services;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +17,7 @@ builder.Services.AddDbContext<DealContext>(options =>
 builder.Services.AddScoped<IDealService, DealService>();
 builder.Services.AddScoped<IHotelService, HotelService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IMediaService, MediaService>();
 
 //Validator
 builder.Services.AddScoped<IValidator<Deal>, DealValidator>();

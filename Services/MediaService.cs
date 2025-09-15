@@ -16,7 +16,7 @@ public class MediaService : IMediaService
         _context = context;
         _fileService = fileService;
     }
-    public async Task<Response<Media>> DeleteAsync(int id, string itemId)
+    public async Task<Response<Media>> DeleteAsync(int id, string? itemId)
     {
         try
         {
