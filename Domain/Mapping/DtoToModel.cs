@@ -11,6 +11,7 @@ public class DtoToModel : Profile
         CreateMap<DealDto, Deal>()
           .ForMember(d => d.Hotels, opt => opt.MapFrom(d => d.Hotels));
         CreateMap<HotelDto, Hotel>();
+        CreateMap<MediaDto, Media>();
     }
 }
 
