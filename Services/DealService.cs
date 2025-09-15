@@ -14,7 +14,7 @@ public class DealService : IDealService
     private readonly IValidator<Deal> _dealValidator;
     private readonly string[] _allowedFileExtentions = [".jpg", ".jpeg", ".png"];
     private readonly string[] _allowedVideoExtentions = [".mp4", ".avi", ".mov", ".webm"];
-    private readonly string[] _allowedMediaExtentions = [".mp4", ".avi", ".mov", ".webm", ".jpg", ".jpeg", ".png"];
+    // private readonly string[] _allowedMediaExtentions = [".mp4", ".avi", ".mov", ".webm", ".jpg", ".jpeg", ".png"];
     private readonly IFileService _fileService;
     public DealService(DealContext context, IValidator<Deal> dealValidator, IFileService fileService)
     {
@@ -85,7 +85,7 @@ public class DealService : IDealService
                     {
                         foreach (MediaDto media in hotel.Medias)
                         {
-                            var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
+                            var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedFileExtentions.Concat(_allowedVideoExtentions).Distinct().ToArray());
                             if (mediaRes.Success)
                             {
                                 mediaList.Add(new Media
@@ -206,7 +206,7 @@ public class DealService : IDealService
                             }
                             else
                             {
-                                var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
+                                var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedFileExtentions.Concat(_allowedVideoExtentions).Distinct().ToArray());
                                 if (mediaRes.Success)
                                 {
                                     mediaList.Add(new Media
