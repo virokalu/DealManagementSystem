@@ -215,6 +215,11 @@ public class DealService : IDealService
                                         Alt = media.Alt
                                     });
                                 }
+                                else
+                                {
+                                    return new Response<Deal>(mediaRes.Message);
+                                }
+                                
                             }
                         }
                     }
