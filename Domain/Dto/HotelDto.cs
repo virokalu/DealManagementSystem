@@ -1,3 +1,5 @@
+using DealManagementSystem.Domain.Models;
+
 namespace DealManagementSystem.Domain.DTO;
 public class HotelDto
 {
@@ -5,4 +7,5 @@ public class HotelDto
     public string Name { get; set; }
     public decimal Rate { get; set; }
     public string Amenities { get; set; }
+    public List<MediaDto>? Medias { get; set; } = new List<MediaDto>();
 }

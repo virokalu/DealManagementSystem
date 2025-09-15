@@ -1,3 +1,4 @@
+using DealManagementSystem.Domain.DTO;
 using DealManagementSystem.Domain.Models;
 using DealManagementSystem.Domain.Services;
 using DealManagementSystem.Domain.Services.Communication;
@@ -13,6 +14,7 @@ public class DealService : IDealService
     private readonly IValidator<Deal> _dealValidator;
     private readonly string[] _allowedFileExtentions = [".jpg", ".jpeg", ".png"];
     private readonly string[] _allowedVideoExtentions = [".mp4", ".avi", ".mov", ".webm"];
+    private readonly string[] _allowedMediaExtentions = [".mp4", ".avi", ".mov", ".webm", ".jpg", ".jpeg", ".png"];
     private readonly IFileService _fileService;
     public DealService(DealContext context, IValidator<Deal> dealValidator, IFileService fileService)
     {
@@ -39,7 +41,7 @@ public class DealService : IDealService
     {
         var deal = await _context.Deals
             .Include(d => d.Hotels)
-            .Include(d=>d.Video)
+            // .Include(d => d.Video)
             .FirstOrDefaultAsync(d => d.Slug == slug);
         if (deal == null)
         {
@@ -49,10 +51,61 @@ public class DealService : IDealService
         return new Response<Deal>(deal);
     }
 
-    public async Task<Response<Deal>> SaveAsync(Deal deal, IFormFile? imageFile, IFormFile? videoFile)
+    public async Task<Response<Deal>> SaveAsync(DealDto dealDto)
     {
         try
         {
+            var deal = new Deal
+            {
+                Id = 0,
+                Slug = dealDto.Slug,
+                Name = dealDto.Name,
+                // Video = dealDto.Video,
+            };
+            if (dealDto.Video != null)
+            {
+                // deal.Video = new Vide
+                // {
+                //     Path = null,
+                //     Alt = dealDto.Video.Alt,
+                // };
+                deal.Video = dealDto.Video;
+            }
+
+            if (dealDto.Hotels != null)
+                foreach (HotelDto hotel in dealDto.Hotels)
+                {
+                    // var mediaList = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
+                    // if (!mediaList.Success)
+                    // {
+                    //     return new Response<Deal>(mediaList.Message);
+                    // }
+                    var mediaList = new List<Media>();
+                    if (hotel.Medias != null)
+                    {
+                        foreach (MediaDto media in hotel.Medias)
+                        {
+                            var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
+                            if (mediaRes.Success)
+                            {
+                                mediaList.Add(new Media
+                                {
+                                    Path = mediaRes.Item,
+                                    Alt = media.Alt
+                                });
+                            }
+                        }
+                    }
+                    deal.Hotels.Add(new Hotel
+                    {
+                        Id = 0,
+                        Name = hotel.Name,
+                        Rate = hotel.Rate,
+                        Amenities = hotel.Amenities,
+                        // Media = mediaList.Item
+                        Medias = mediaList
+                    });
+                }
             await _dealValidator.ValidateAndThrowAsync(deal);
             var slugDeal = _context.Deals.FirstOrDefault(d => d.Slug == deal.Slug);
             if (slugDeal != null)
@@ -61,14 +114,14 @@ public class DealService : IDealService
             }
 
             //Save Image
-            var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
+            var createdImageName = await _fileService.SaveFileAsync(dealDto.ImageFile, _allowedFileExtentions);
             if (!createdImageName.Success)
             {
                 return new Response<Deal>(createdImageName.Message);
             }
 
             //Save Video
-            var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
+            var createdVideoName = await _fileService.SaveFileAsync(dealDto.VideoFile, _allowedVideoExtentions);
             if (!createdVideoName.Success)
             {
                 return new Response<Deal>(createdVideoName.Message);
@@ -84,7 +137,7 @@ public class DealService : IDealService
             {
                 hotel.Deal = deal;
             }
-            if (deal.Video != null) deal.Video.Deal = deal;
+            // if (deal.Video != null) deal.Video.Deal = deal;
 
             await _context.SaveChangesAsync();
             return new Response<Deal>(deal);
@@ -100,19 +153,90 @@ public class DealService : IDealService
         }
     }
 
-    public async Task<Response<Deal>> UpdateAsync(int id, Deal deal)
+    public async Task<Response<Deal>> UpdateAsync(int id, DealDto dealDto)
     {
         try
         {
-            await _dealValidator.ValidateAndThrowAsync(deal);
             var existingDeal = await _context.Deals
                 .Include(d => d.Hotels)
-                .Include(d=>d.Video)
+                // .Include(d => d.Video)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (existingDeal == null)
             {
                 return new Response<Deal>("Deal not found.");
             }
+
+            var deal = new Deal
+            {
+                Id = dealDto.Id,
+                Slug = dealDto.Slug,
+                Name = dealDto.Name,
+                // Video = dealDto.Video,
+            };
+            if (dealDto.Video != null)
+            {
+                deal.Video = new Media
+                {
+                    Path = null,
+                    Alt = dealDto.Video.Alt,
+                };
+            }
+            if (dealDto.Hotels != null && dealDto.Hotels.Any())
+                foreach (HotelDto hotel in dealDto.Hotels)
+                {
+                    var mediaList = new List<Media>();
+
+                    if (hotel.Medias != null && hotel.Medias.Any())
+                    {
+                        // var mediaResponse = await _fileService.SaveFilesAsync(hotel.MediaFiles, _allowedMediaExtentions);
+                        // if (!mediaResponse.Success)
+                        // {
+                        //     return new Response<Deal>(mediaResponse.Message);
+                        // }
+                        // if (mediaResponse.Item != null) mediaList.AddRange(mediaResponse.Item);
+                        foreach (MediaDto media in hotel.Medias)
+                        {
+                            if (media.MediaFile == null)
+                            {
+                                mediaList.Add(new Media
+                                {
+                                    Alt = media.Alt,
+                                    Path = media.Path
+                                });
+                            }
+                            else
+                            {
+                                var mediaRes = await _fileService.SaveFileAsync(media.MediaFile, _allowedMediaExtentions);
+                                if (mediaRes.Success)
+                                {
+                                    mediaList.Add(new Media
+                                    {
+                                        Path = mediaRes.Item,
+                                        Alt = media.Alt
+                                    });
+                                }
+                                else
+                                {
+                                    return new Response<Deal>(mediaRes.Message);
+                                }
+                                
+                            }
+                        }
+                    }
+
+                    deal.Hotels.Add(new Hotel
+                    {
+                        Id = hotel.Id,
+                        Name = hotel.Name,
+                        Rate = hotel.Rate,
+                        Amenities = hotel.Amenities,
+                        // Media = (hotel.Media != null) ? [.. hotel.Media.ToList(), .. mediaList] : mediaList
+                        Medias = mediaList
+                    });
+                }
+
+            await _dealValidator.ValidateAndThrowAsync(deal);
+
             // if (imageFile != null)
             // {
             //     var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
@@ -126,18 +250,16 @@ public class DealService : IDealService
             // _context.Entry(existingDeal).CurrentValues.SetValues(deal);
 
             existingDeal.Name = deal.Name;
-            if (existingDeal.Video != null) {
-                existingDeal.Video.Alt = deal.Video.Alt;
+            if (existingDeal.Video != null)
+            {
+                existingDeal.Video.Alt = deal.Video?.Alt;
             }
             else
             {
-                existingDeal.Video = new Video
+                existingDeal.Video = new Media
                 {
-                    Id = 0,
                     Path = null,
-                    Alt = deal.Video.Alt,
-                    DealId = existingDeal.Id,
-                    Deal = existingDeal
+                    Alt = deal.Video?.Alt
                 };
             }
 
@@ -149,6 +271,7 @@ public class DealService : IDealService
                     hotelEntity.Name = hotel.Name;
                     hotelEntity.Rate = hotel.Rate;
                     hotelEntity.Amenities = hotel.Amenities;
+                    hotelEntity.Medias = hotel.Medias;
                 }
                 else
                 {
@@ -199,7 +322,7 @@ public class DealService : IDealService
             {
                 return new Response<Deal>("Deal not found.");
             }
-            
+
             var createdImageName = await _fileService.SaveFileAsync(imageFile, _allowedFileExtentions);
             if (!createdImageName.Success)
             {
@@ -218,31 +341,29 @@ public class DealService : IDealService
         if (videoFile != null)
         {
             var existingDeal = await _context.Deals
-                .Include(d=>d.Video)
+                .Include(d => d.Video)
                 .FirstOrDefaultAsync(d => d.Id == id);
             if (existingDeal == null)
             {
                 return new Response<Deal>("Deal not found.");
             }
-            
+
             var createdVideoName = await _fileService.SaveFileAsync(videoFile, _allowedVideoExtentions);
             if (!createdVideoName.Success)
             {
                 return new Response<Deal>(createdVideoName.Message);
             }
 
-            if (existingDeal.Video != null) {
+            if (existingDeal.Video != null)
+            {
                 existingDeal.Video.Path = createdVideoName.Item;
             }
             else
             {
-                existingDeal.Video = new Video
+                existingDeal.Video = new Media
                 {
-                    Id = 0,
                     Path = createdVideoName.Item,
-                    Alt = "This is a Alt",
-                    DealId = existingDeal.Id,
-                    Deal = existingDeal
+                    Alt = "This is a Alt"
                 };
             }
 
