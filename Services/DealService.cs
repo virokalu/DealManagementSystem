@@ -200,6 +200,7 @@ public class DealService : IDealService
                             {
                                 mediaList.Add(new Media
                                 {
+                                    Id = Guid.Parse(media.Id!),
                                     Alt = media.Alt,
                                     Path = media.Path
                                 });
@@ -219,7 +220,6 @@ public class DealService : IDealService
                                 {
                                     return new Response<Deal>(mediaRes.Message);
                                 }
-                                
                             }
                         }
                     }
@@ -265,13 +265,42 @@ public class DealService : IDealService
 
             foreach (var hotel in deal.Hotels)
             {
-                var hotelEntity = existingDeal.Hotels.FirstOrDefault(c => c.Id == hotel.Id && c.Id != 0);
+                var hotelEntity = existingDeal.Hotels.FirstOrDefault(h => h.Id == hotel.Id && h.Id != 0);
                 if (hotelEntity != null)
                 {
                     hotelEntity.Name = hotel.Name;
                     hotelEntity.Rate = hotel.Rate;
                     hotelEntity.Amenities = hotel.Amenities;
-                    hotelEntity.Medias = hotel.Medias;
+                    // hotelEntity.Medias = hotel.Medias;
+                    if (hotel.Medias != null)
+                    {
+
+                        if (hotelEntity.Medias != null)
+                        {
+                            foreach (var media in hotel.Medias)
+                            {
+                                var mediaEntity = hotelEntity.Medias.FirstOrDefault(m => m.Id == media.Id);
+                                if (mediaEntity != null)
+                                {
+                                    mediaEntity.Alt = media.Alt;
+                                }
+                                else
+                                {
+                                    hotelEntity.Medias.Add(media);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            hotelEntity.Medias = hotel.Medias;
+                        }
+
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Medias not found in Hotel: {hotel.Name}");
+                    }
+
                 }
                 else
                 {
